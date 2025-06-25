@@ -70,7 +70,11 @@ namespace Components.Cards
 
         public void SelectCard()
         {
-            if (!selectionModeActive || isSelected) return;
+            if (!selectionModeActive || isSelected) 
+            {
+                Debug.LogWarning($"Invalid selection attempt: mode={selectionModeActive}, selected={isSelected}");
+                return;
+            }
             
             isSelected = true;
             targetPosition = originalPosition + Vector3.up * selectedHeight;
