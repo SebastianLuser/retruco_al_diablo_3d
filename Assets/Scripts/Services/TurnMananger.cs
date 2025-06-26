@@ -1,3 +1,4 @@
+using System.Collections;
 using AI;
 using Match.Bids;
 using States;
@@ -57,18 +58,11 @@ public class TurnManager : MonoBehaviour
             return; 
         }
         Instance = this;
-
-        InitializeServices();
-        InitializeAIStrategies();
     }
 
     void Start()
     {
-        gameSvc = ServiceLocator.Get<IGameService>();
-        fsm = new StateMachine();
-        
-        Debug.Log("🎮 TurnManager iniciado - Comenzando partida");
-        fsm.ChangeState(new DealHandState(this));
+        StartCoroutine(InitializeGameDelayed());
     }
 
     void Update()
@@ -80,6 +74,21 @@ public class TurnManager : MonoBehaviour
 
     #region Initialization
 
+    
+    private IEnumerator InitializeGameDelayed()
+    {
+        yield return null;
+        
+        InitializeServices();
+        InitializeAIStrategies();
+        
+        gameSvc = ServiceLocator.Get<IGameService>();
+        fsm = new StateMachine();
+        
+        Debug.Log("🎮 TurnManager initialized - Starting game");
+        fsm.ChangeState(new DealHandState(this));
+    }
+    
     private void InitializeServices()
     {
         try
@@ -87,7 +96,9 @@ public class TurnManager : MonoBehaviour
             ServiceLocator.Register<IBidFactory>(new BidFactory());
             deckSvc = ServiceLocator.Get<IDeckService>();
             placeSvc = ServiceLocator.Get<IPlacementService>();
+        
             aiStrategy = ServiceLocator.Get<IAIStrategy>();
+            Debug.Log("All services initialized successfully");
         }
         catch (System.Exception ex)
         {
@@ -97,9 +108,20 @@ public class TurnManager : MonoBehaviour
 
     private void InitializeAIStrategies()
     {
-        SetAIStrategy(new MinPowerStrategy());
-        SetEnvidoStrategy(new AlwaysEnvidoStrategy());
-        SetTrucoStrategy(new AlwaysAcceptTrucoStrategy());
+        try
+        {
+            envidoStrategy = ServiceLocator.Get<IEnvidoDecisionStrategy>();
+            trucoStrategy = ServiceLocator.Get<ITrucoDecisionStrategy>();
+            Debug.Log("Using AI strategies from AIManager");
+        }
+        catch
+        {
+            Debug.LogWarning("AIManager strategies not found, using fallback");
+            SetEnvidoStrategy(new AlwaysEnvidoStrategy());
+            SetTrucoStrategy(new AlwaysAcceptTrucoStrategy());
+        }
+    
+        Debug.Log("AI strategies initialized");
     }
 
     #endregion

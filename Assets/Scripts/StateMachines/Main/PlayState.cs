@@ -41,7 +41,20 @@ namespace States
             if (mgr.playerMoveDone)
             {
                 mgr.playerMoveDone = false;
-                TransitionToNext();
+        
+                if (isFirst)
+                {
+                    int nextPlayer = 1 - playerId; // El otro jugador
+                    mgr.activePlayer = nextPlayer; // ← ESTA LÍNEA FALTABA
+            
+                    Debug.Log($"🔄 {(playerId == 0 ? "Jugador" : "IA")} jugó primero - Cambiando al segundo");
+                    mgr.ChangeState(new PlayState(mgr, nextPlayer, false));
+                }
+                else
+                {
+                    Debug.Log("🔄 Ambos jugaron - Evaluando baza");
+                    TransitionToNext();
+                }
             }
         }
 
