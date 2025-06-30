@@ -15,7 +15,8 @@ namespace StateMachines.Play
         private IResponseService responseService;
         private int callerPlayerId;
         private int responderPlayerId;
-
+        private bool isFromRaise;
+        
         public AwaitingEnvidoResponseState(TurnManager mgr, BidType bidType, EnvidoManager envidoManager)
         {
             this.mgr = mgr;
@@ -23,12 +24,24 @@ namespace StateMachines.Play
             this.envidoManager = envidoManager;
             this.callerPlayerId = mgr.activePlayer;
             this.responderPlayerId = 1 - mgr.activePlayer;
+            this.isFromRaise = false;
+        }
+
+        public AwaitingEnvidoResponseState(TurnManager mgr, BidType bidType, EnvidoManager envidoManager, bool fromRaise)
+        {
+            this.mgr = mgr;
+            this.currentBidType = bidType;
+            this.envidoManager = envidoManager;
+            this.callerPlayerId = mgr.activePlayer;
+            this.responderPlayerId = 1 - mgr.activePlayer;
+            this.isFromRaise = fromRaise;
         }
 
         public void Enter()
         {
-            Debug.Log($"⏳ AWAITING: {(responderPlayerId == 0 ? "Jugador" : "IA")} debe responder a {currentBidType}");
-            Debug.Log($"💰 Puntos acumulados hasta ahora: {envidoManager.GetAccumulatedPoints()}");
+            Debug.Log($"⏳ AWAITING: {(responderPlayerId == 0 ? "Player" : "AI")} must respond to {currentBidType}");
+            Debug.Log($"💰 Points accumulated so far: {envidoManager.GetAccumulatedPoints()}");
+            Debug.Log($"🔄 Is from raise: {isFromRaise}");
             
             CardClick.enableClicks = false;
             mgr.bloqueadoPorCanto = true;
@@ -45,9 +58,9 @@ namespace StateMachines.Play
 
         private void HandleAIResponse()
         {
-			bool shouldAccept = mgr.envidoStrategy?.ShouldAcceptEnvido(mgr.Opponent, mgr.Player) ?? true;
+            bool shouldAccept = mgr.envidoStrategy?.ShouldAcceptEnvido(mgr.Opponent, mgr.Player) ?? true;
             
-            Debug.Log($"🤖 IA decide: {(shouldAccept ? "QUIERO" : "NO QUIERO")} el {currentBidType}");
+            Debug.Log($"🤖 BID RESPONSE: AI decides {(shouldAccept ? "QUIERO" : "NO QUIERO")} for {currentBidType}");
             
             if (shouldAccept)
             {
@@ -74,7 +87,7 @@ namespace StateMachines.Play
             }
             catch (System.Exception ex)
             {
-                Debug.LogError($"❌ Error ResponseService: {ex.Message}");
+                Debug.LogError($"Error ResponseService: {ex.Message}");
             }
         }
 
@@ -104,34 +117,42 @@ namespace StateMachines.Play
 
         private void OnAcceptEnvido()
         {
-            Debug.Log($"✅ {currentBidType} ACEPTADO");
-            Debug.Log($"💰 Total acumulado: {envidoManager.GetAccumulatedPoints()} puntos");
+            Debug.Log($"✅ BID ACCEPTED: {currentBidType} ACCEPTED");
             
-            envidoManager.AddBid(currentBidType);
+            if (isFromRaise)
+            {
+                envidoManager.AddBid(currentBidType);
+                Debug.Log($"⬆️ RAISE ACCEPTED: Added {currentBidType} to sequence");
+            }
+            else
+            {
+                Debug.Log($"✅ INITIAL BID ACCEPTED: {currentBidType} was already added when called");
+            }
+            
+            Debug.Log($"💰 Total accumulated: {envidoManager.GetAccumulatedPoints()} points");
             
             mgr.bloqueadoPorCanto = false;
-            
             mgr.TransitionToEnvidoState(envidoManager);
         }
 
         private void OnDeclineEnvido()
         {
-            Debug.Log($"❌ {currentBidType} RECHAZADO");
+            Debug.Log($"❌ BID DECLINED: {currentBidType} DECLINED");
             
             int accumulatedPoints = envidoManager.GetAccumulatedPoints();
             
             if (callerPlayerId == 0)
             {
                 mgr.GameService.PlayerWinsEnvidoPoints(accumulatedPoints);
-                Debug.Log($"🏆 Jugador gana {accumulatedPoints} puntos (IA rechazó {currentBidType})");
+                Debug.Log($"🏆 ENVIDO POINTS: Player wins {accumulatedPoints} points (AI declined {currentBidType})");
             }
             else
             {
                 mgr.GameService.OpponentWinsEnvidoPoints(accumulatedPoints);
-                Debug.Log($"💀 Oponente gana {accumulatedPoints} puntos (Jugador rechazó {currentBidType})");
+                Debug.Log($"💀 ENVIDO POINTS: Opponent wins {accumulatedPoints} points (Player declined {currentBidType})");
             }
             
-            Debug.Log($"📊 Puntos ganados: {accumulatedPoints} (ya acumulados: {envidoManager.GetBidsDescription()})");
+            Debug.Log($"📊 Points breakdown: {accumulatedPoints} (sequence: {envidoManager.GetBidsDescription()})");
             
             mgr.MarcarEnvidoComoCantado();
             mgr.bloqueadoPorCanto = false;
@@ -144,21 +165,21 @@ namespace StateMachines.Play
             
             if (nextBid == null)
             {
-                Debug.LogWarning("⚠️ No se puede subir más - aceptando automáticamente");
+                Debug.LogWarning("Cannot raise further - accepting automatically");
                 OnAcceptEnvido();
                 return;
             }
             
-            Debug.Log($"⬆️ SUBIENDO: {currentBidType} → {nextBid}");
+            Debug.Log($"⬆️ BID RAISED: {currentBidType} → {nextBid}");
             
             envidoManager.AddBid(currentBidType);
             
-            Debug.Log($"💰 Puntos acumulados: {envidoManager.GetAccumulatedPoints()}");
-            Debug.Log($"📋 Secuencia: {envidoManager.GetBidsDescription()} + {nextBid}");
+            Debug.Log($"💰 Points accumulated: {envidoManager.GetAccumulatedPoints()}");
+            Debug.Log($"📋 Sequence: {envidoManager.GetBidsDescription()} + {nextBid}");
             
             mgr.activePlayer = responderPlayerId;
             
-            mgr.ChangeState(new AwaitingEnvidoResponseState(mgr, nextBid.Value, envidoManager));
+            mgr.ChangeState(new AwaitingEnvidoResponseState(mgr, nextBid.Value, envidoManager, true));
         }
 
         #endregion
@@ -167,19 +188,35 @@ namespace StateMachines.Play
 
         private BidType? GetNextBidType()
         {
+            if (currentBidType == BidType.Envido)
+            {
+                var existingBids = envidoManager.GetCalledBids();
+                int envidoCount = 0;
+                foreach (var bid in existingBids)
+                {
+                    if (bid == BidType.Envido) envidoCount++;
+                }
+                
+                if (envidoCount < 2)
+                {
+                    return BidType.Envido;
+                }
+                else
+                {
+                    return BidType.RealEnvido;
+                }
+            }
+            
             switch (currentBidType)
             {
-                case BidType.Envido:
-                    return BidType.RealEnvido;
-                    
                 case BidType.RealEnvido:
                     return BidType.FaltaEnvido;
                     
                 case BidType.FaltaEnvido:
-                    return null; 
+                    return null;
                     
                 default:
-                    Debug.LogWarning($"⚠️ BidType desconocido: {currentBidType}");
+                    Debug.LogWarning($"Unknown BidType: {currentBidType}");
                     return null;
             }
         }

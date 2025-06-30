@@ -185,20 +185,24 @@ namespace Services
             bool hasEnvidoOptions = false;
             bool hasTrucoOptions = false;
 
-            foreach (var bidType in new[] { BidType.Envido, BidType.RealEnvido, BidType.FaltaEnvido })
+            bool isFirstPlayerFirstPlay = (mgr.activePlayer == 0) && (mgr.bazaCount == 0);
+            if (isFirstPlayerFirstPlay && !mgr.EnvidoCantado)
             {
-                var bid = bidFactory.CreateBid(bidType);
-                if (validator.CanBid(bid, mgr))
+                foreach (var bidType in new[] { BidType.Envido, BidType.RealEnvido, BidType.FaltaEnvido })
                 {
-                    hasEnvidoOptions = true;
-                    break;
+                    var bid = bidFactory.CreateBid(bidType);
+                    if (validator.CanBid(bid, mgr))
+                    {
+                        hasEnvidoOptions = true;
+                        break;
+                    }
                 }
             }
             
             foreach (var bidType in new[] { BidType.Truco, BidType.ReTruco, BidType.ValeCuatro })
             {
                 var bid = bidFactory.CreateBid(bidType);
-                if (validator.CanBid(bid, mgr))
+                if (validator.CanBid(bid, mgr) && !mgr.TrucoCantado)
                 {
                     hasTrucoOptions = true;
                     break;

@@ -76,11 +76,8 @@ namespace StateMachines.Main
                 mgr.EnablePlayerInput(false);
                 return;
             }
-
-            if (isFirst && mgr.bazaCount == 0 && !mgr.EnvidoCantado)
-            {
-                SetupBidding();
-            }
+            
+            SetupBidding();
 
             mgr.EnablePlayerInput(true);
             mgr.playerMoveDone = false;
@@ -91,7 +88,7 @@ namespace StateMachines.Main
             Debug.Log("🤖 Turno de la IA");
             mgr.EnablePlayerInput(false);
             
-            if (isFirst && mgr.bazaCount == 0 && !mgr.EnvidoCantado)
+            if (isFirst && mgr.bazaCount == 0)
             {
                 CheckAIBidding();
             }
@@ -125,7 +122,7 @@ namespace StateMachines.Main
 
         private void CheckAIBidding()
         {
-            bool shouldCallEnvido = mgr.envidoStrategy?.ShouldCallEnvido(mgr) ?? false;
+            bool shouldCallEnvido = !mgr.EnvidoCantado && (mgr.envidoStrategy?.ShouldCallEnvido(mgr) ?? false);   
             
             if (shouldCallEnvido)
             {
@@ -133,7 +130,7 @@ namespace StateMachines.Main
                 
                 var envidoManager = mgr.GetOrCreateEnvidoManager();
                 envidoManager.AddBid(BidType.Envido);
-                
+                Debug.Log($"🤖 BID CALLED: AI calls {BidType.Envido}");
                 mgr.ChangeState(new AwaitingEnvidoResponseState(mgr, BidType.Envido, envidoManager));
                 return;
             }
