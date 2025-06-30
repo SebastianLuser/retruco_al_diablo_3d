@@ -1,7 +1,8 @@
-﻿using UnityEngine;
-using Match.Bids;
+﻿using Services;
+using StateMachines.Envido;
+using UnityEngine;
 
-namespace States
+namespace StateMachines.Main
 {
     public class EnvidoState : IState
     {

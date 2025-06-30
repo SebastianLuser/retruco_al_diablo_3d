@@ -1,4 +1,4 @@
-using Match.Bids;
+using GameSystems.Bids;
 using NUnit.Framework;
 
 public class TrucoStateTests

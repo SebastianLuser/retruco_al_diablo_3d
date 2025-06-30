@@ -1,5 +1,10 @@
+using StateMachines;
 using UnityEngine;
 
+namespace StateMachines
+{
+    
+}
 public class StateMachine
 {
     private IState current;

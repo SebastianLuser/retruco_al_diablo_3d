@@ -2,8 +2,11 @@
 using Services;
 using UnityEngine.SceneManagement;
 using System.Collections;
+using Components.Cards;
+using GameSystems;
+using UI;
 
-namespace States
+namespace StateMachines.Main
 {
     public class GameOverState : IState
     {
@@ -14,12 +17,15 @@ namespace States
         
         private IAnimationService animationService;
         private GameHider gameHider;
-
+        private IMatchesHistoryManager matchesHistory;
+        
         public GameOverState(TurnManager mgr)
         {
             this.mgr = mgr;
             
             var pointSystem = ServiceLocator.Get<IPointSystem>();
+            matchesHistory = ServiceLocator.Get<IMatchesHistoryManager>();
+            
             int playerHP = pointSystem.GetPlayerPoints();
             int opponentHP = pointSystem.GetOpponentPoints();
             
@@ -36,6 +42,8 @@ namespace States
             DisableGameControls();
             
             GetEffectServices();
+
+            RegisterMatch();
             
             if (playerWon)
             {
@@ -62,6 +70,34 @@ namespace States
         public void Exit()
         {
             Debug.Log("🚪 Saliendo de GameOverState");
+        }
+        
+        private void RegisterMatch()
+        {
+            try
+            {
+                string player1 = "Pedrito";
+                string result = playerWon ? player1 : "Diablo";
+
+                var partida = new Match
+                {
+                    Id = System.Guid.NewGuid().GetHashCode(),
+                    Date = System.DateTime.Now,
+                    Player1 = player1,
+                    Result = result
+                };
+                
+                if (matchesHistory == null)
+                    matchesHistory = ServiceLocator.Get<IMatchesHistoryManager>();
+
+                matchesHistory.RegistryMatch(partida);
+
+                Debug.Log("📋 Partida registrada en historial");
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogWarning($"⚠️ No se pudo registrar la partida en el historial: {ex.Message}");
+            }
         }
 
         #region Game Controls

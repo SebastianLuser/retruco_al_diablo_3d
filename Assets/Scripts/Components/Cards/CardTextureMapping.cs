@@ -1,8 +1,11 @@
 using UnityEngine;
 
-[System.Serializable]
-public class CardTextureMapping
+namespace Components.Cards
 {
-    public string cardName;
-    public Material cardTexture;
+    [System.Serializable]
+    public class CardTextureMapping
+    {
+        public string cardName;
+        public Material cardTexture;
+    }
 }

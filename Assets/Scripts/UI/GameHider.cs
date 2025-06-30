@@ -1,6 +1,7 @@
-﻿using UnityEngine;
+﻿using Services;
+using UnityEngine;
 
-namespace Services
+namespace UI
 {
     public class GameHider : MonoBehaviour
     {

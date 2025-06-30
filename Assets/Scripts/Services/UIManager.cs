@@ -1,406 +1,403 @@
 ﻿using System;
 using System.Collections.Generic;
+using Components.Cards;
+using GameSystems;
+using GameSystems.Bids;
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
-using Match.Bids;
 
 namespace Services
 {
-   public interface IUIManager
-   {
-       void ShowAcceptDeclinePanel(Action<bool> onResponse);
-       void HideAcceptDeclinePanel();
-       void ShowBidOptions(BidValidator validator, TurnManager mgr);
-       void ShowEnvidoOptions(IEnumerable<BidType> bids);
-       void HideEnvidoOptions();
-       void ShowTrucoOptions(IEnumerable<BidType> bids);
-       void HideTrucoOptions();
-       void ClearAllListeners();
-       event Action<bool> OnAcceptDeclineResponse;
-       event Action<BidType> OnBidSelected;
-       
-       void ShowEnvidoSelectionPanel(System.Action onConfirm, System.Action onCancel, int initialValue);
-       void HideEnvidoSelectionPanel();
-       void UpdateEnvidoSelectionValue(int value);
-       void ShowEnvidoResolutionPanel(int playerValue, int opponentValue, string winner, int damage, List<Card> playerCards, string bidName);
-       void HideEnvidoResolutionPanel();
-   }
+    public interface IUIManager
+    {
+        void ShowAcceptDeclinePanel(Action<bool> onResponse);
+        void HideAcceptDeclinePanel();
+        void ShowBidOptions(BidValidator validator, TurnManager mgr);
+        void ShowEnvidoOptions(IEnumerable<BidType> bids);
+        void HideEnvidoOptions();
+        void ShowTrucoOptions(IEnumerable<BidType> bids);
+        void HideTrucoOptions();
+        void ShowCantosPanel(Action onCantar, Action onNoCantar);
+        void HideCantosPanel();
+        void UpdateEnvidoValue(int value);
+        void ShowEnvidoResolutionPanel(int playerValue, int opponentValue, string winner, int damage, List<Card> playerCards, string bidName);
+        void HideEnvidoResolutionPanel();
+        void ClearAllListeners();
+        
+        event Action<bool> OnAcceptDeclineResponse;
+        event Action<BidType> OnBidSelected;
+    }
 
-   public class UIManager : MonoBehaviour, IUIManager
-   {
-       [Header("Envido Options Panel")]
-       [SerializeField] private GameObject envidoOptionsPanel;
-       [SerializeField] private Transform envidoButtonsContainer;
+    public class UIManager : MonoBehaviour, IUIManager
+    {
+        [Header("Envido Bids Panel")]
+        [SerializeField] private GameObject envidoBidsPanel;
+        [SerializeField] private Button envidoButton;
+        [SerializeField] private Button envidoEnvidoButton;
+        [SerializeField] private Button realEnvidoButton;
+        [SerializeField] private Button faltaEnvidoButton;
+        
+        [Header("Truco Bids Panel")]
+        [SerializeField] private GameObject trucoBidsPanel;
+        [SerializeField] private Button trucoButton;
+        [SerializeField] private Button reTrucoButton;
+        [SerializeField] private Button valeCuatroButton;
 
-       [Header("Truco Options Panel")]
-       [SerializeField] private GameObject trucoOptionsPanel;
-       [SerializeField] private Transform trucoButtonsContainer;
+        [Header("Response Panel")]
+        [SerializeField] private GameObject responsePanel;
+        [SerializeField] private Button acceptButton;
+        [SerializeField] private Button declineButton;
 
-       [Header("Bid Button Prefab")]
-       [SerializeField] private GameObject bidButtonPrefab;
+        [Header("Cantos Panel")]
+        [SerializeField] private GameObject cantosPanel;
+        [SerializeField] private Button cantarButton;
+        [SerializeField] private Button noCantarButton;
+        [SerializeField] private TextMeshProUGUI envidoValueText;
+        [SerializeField] private TextMeshProUGUI cantarInstructionText;
 
-       [Header("Quiero / No Quiero Panel")]
-       [SerializeField] private GameObject responsePanel;
-       [SerializeField] private Button acceptButton;
-       [SerializeField] private Button declineButton;
+        [Header("Envido Resolution Panel")]
+        [SerializeField] private GameObject envidoResolutionPanel;
+        [SerializeField] private TextMeshProUGUI playerValueText;
+        [SerializeField] private TextMeshProUGUI opponentValueText;
+        
+        [Header("Sort Buttons")] 
+        [SerializeField] private Button sortBySuitButton;  
+        [SerializeField] private Button sortByRankButton; 
+        
+        public event Action<bool> OnAcceptDeclineResponse;
+        public event Action<BidType> OnBidSelected;
 
-       [Header("Envido Selection")]
-       [SerializeField] private GameObject envidoSelectionPanel;
-       [SerializeField] private Button confirmEnvidoButton;
-       [SerializeField] private Button cancelEnvidoButton;
-       [SerializeField] private TextMeshProUGUI envidoValueText;
-       [SerializeField] private TextMeshProUGUI envidoInstructionText;
+        private Action<bool> currentAcceptDeclineAction;
+        private Action currentCantarAction;
+        private Action currentNoCantarAction;
 
-       [Header("Envido Resolution")]
-       [SerializeField] private GameObject envidoResolutionPanel;
-       [SerializeField] private TextMeshProUGUI playerValueText;
-       [SerializeField] private TextMeshProUGUI opponentValueText;
-       [SerializeField] private TextMeshProUGUI winnerText;
-       [SerializeField] private TextMeshProUGUI damageText;
-       
-       public event Action<bool> OnAcceptDeclineResponse;
-       public event Action<BidType> OnBidSelected;
-       
-       private readonly List<GameObject> envidoButtons = new();
-       private readonly List<GameObject> trucoButtons = new();
+        void Awake()
+        {
+            ServiceLocator.Register<IUIManager>(this);
+            SetupStaticButtonListeners();
+            InitializePanels();
+        }
 
-       private System.Action currentConfirmAction;
-       private System.Action currentCancelAction;
-       private Action<bool> currentAcceptDeclineAction;
+        void OnDestroy()
+        {
+            CleanupAllResources();
+        }
 
-       void Awake()
-       {
-           ServiceLocator.Register<IUIManager>(this);
-           SetupInitialButtonListeners();
-           InitializePanels();
-       }
+        private void SetupStaticButtonListeners()
+        {
+            if (acceptButton != null)
+            {
+                acceptButton.onClick.RemoveAllListeners();
+                acceptButton.onClick.AddListener(() => OnAcceptPressed());
+            }
 
-       void OnDestroy()
-       {
-           CleanupAllResources();
-       }
+            if (declineButton != null)
+            {
+                declineButton.onClick.RemoveAllListeners();
+                declineButton.onClick.AddListener(() => OnDeclinePressed());
+            }
 
-       private void SetupInitialButtonListeners()
-       {
-           if (acceptButton != null)
-           {
-               acceptButton.onClick.RemoveAllListeners();
-               acceptButton.onClick.AddListener(OnAcceptButtonPressed);
-           }
+            if (envidoButton != null)
+            {
+                envidoButton.onClick.RemoveAllListeners();
+                envidoButton.onClick.AddListener(() => OnBidSelected?.Invoke(BidType.Envido));
+            }
 
-           if (declineButton != null)
-           {
-               declineButton.onClick.RemoveAllListeners();
-               declineButton.onClick.AddListener(OnDeclineButtonPressed);
-           }
-       }
+            if (realEnvidoButton != null)
+            {
+                realEnvidoButton.onClick.RemoveAllListeners();
+                realEnvidoButton.onClick.AddListener(() => OnBidSelected?.Invoke(BidType.RealEnvido));
+            }
 
-       private void InitializePanels()
-       {
-           if (envidoOptionsPanel != null) envidoOptionsPanel.SetActive(false);
-           if (trucoOptionsPanel != null) trucoOptionsPanel.SetActive(false);
-           if (responsePanel != null) responsePanel.SetActive(false);
-           if (envidoSelectionPanel != null) envidoSelectionPanel.SetActive(false);
-           if (envidoResolutionPanel != null) envidoResolutionPanel.SetActive(false);
-       }
+            if (faltaEnvidoButton != null)
+            {
+                faltaEnvidoButton.onClick.RemoveAllListeners();
+                faltaEnvidoButton.onClick.AddListener(() => OnBidSelected?.Invoke(BidType.FaltaEnvido));
+            }
 
-       private void OnAcceptButtonPressed()
-       {
-           currentAcceptDeclineAction?.Invoke(true);
-           OnAcceptDeclineResponse?.Invoke(true);
-           HideAcceptDeclinePanel();
-       }
+            if (envidoEnvidoButton != null)
+            {
+                envidoEnvidoButton.onClick.RemoveAllListeners();
+                envidoEnvidoButton.onClick.AddListener(() => HandleEnvidoEnvido());
+            }
 
-       private void OnDeclineButtonPressed()
-       {
-           currentAcceptDeclineAction?.Invoke(false);
-           OnAcceptDeclineResponse?.Invoke(false);
-           HideAcceptDeclinePanel();
-       }
+            if (trucoButton != null)
+            {
+                trucoButton.onClick.RemoveAllListeners();
+                trucoButton.onClick.AddListener(() => OnBidSelected?.Invoke(BidType.Truco));
+            }
 
-       public void ShowAcceptDeclinePanel(Action<bool> onResponse)
-       {
-           if (onResponse == null)
-           {
-               Debug.LogWarning("UIManager: ShowAcceptDeclinePanel called with null action");
-               return;
-           }
+            if (reTrucoButton != null)
+            {
+                reTrucoButton.onClick.RemoveAllListeners();
+                reTrucoButton.onClick.AddListener(() => OnBidSelected?.Invoke(BidType.ReTruco));
+            }
 
-           currentAcceptDeclineAction = onResponse;
-           
-           if (responsePanel != null)
-               responsePanel.SetActive(true);
-       }
+            if (valeCuatroButton != null)
+            {
+                valeCuatroButton.onClick.RemoveAllListeners();
+                valeCuatroButton.onClick.AddListener(() => OnBidSelected?.Invoke(BidType.ValeCuatro));
+            }
+            
+            if (sortBySuitButton != null)
+            {
+                sortBySuitButton.onClick.RemoveAllListeners();
+                sortBySuitButton.onClick.AddListener(SortBySuit);
+            }
 
-       public void HideAcceptDeclinePanel()
-       {
-           if (responsePanel != null)
-               responsePanel.SetActive(false);
-           
-           currentAcceptDeclineAction = null;
-       }
+            if (sortByRankButton != null)
+            {
+                sortByRankButton.onClick.RemoveAllListeners();
+                sortByRankButton.onClick.AddListener(SortByRank);
+            }
+        }
 
-       public void ShowBidOptions(BidValidator validator, TurnManager mgr)
-       {
-           if (validator == null || mgr == null)
-           {
-               Debug.LogError("UIManager: ShowBidOptions called with null parameters");
-               return;
-           }
+        private void InitializePanels()
+        {
+            if (envidoBidsPanel != null) envidoBidsPanel.SetActive(false);
+            if (trucoBidsPanel != null) trucoBidsPanel.SetActive(false);
+            if (responsePanel != null) responsePanel.SetActive(false);
+            if (cantosPanel != null) cantosPanel.SetActive(false);
+            if (envidoResolutionPanel != null) envidoResolutionPanel.SetActive(false);
+        }
 
-           ClearEnvidoButtons();
-           ClearTrucoButtons();
+        public void ShowBidOptions(BidValidator validator, TurnManager mgr)
+        {
+            if (validator == null || mgr == null)
+            {
+                Debug.LogError("UIManager: ShowBidOptions called with null parameters");
+                return;
+            }
 
-           IBidFactory bidFactory;
-           try
-           {
-               bidFactory = ServiceLocator.Get<IBidFactory>();
-           }
-           catch (Exception ex)
-           {
-               Debug.LogError($"UIManager: Failed to get BidFactory - {ex.Message}");
-               return;
-           }
-           
-           foreach (var bidType in new[] { BidType.Envido, BidType.RealEnvido, BidType.FaltaEnvido })
-           {
-               var bid = bidFactory.CreateBid(bidType);
-               if (validator.CanBid(bid, mgr))
-                   CreateButton(bidType, envidoButtonsContainer, envidoButtons);
-           }
-           
-           if (envidoOptionsPanel != null)
-               envidoOptionsPanel.SetActive(envidoButtons.Count > 0);
-           
-           foreach (var bidType in new[] { BidType.Truco, BidType.ReTruco, BidType.ValeCuatro })
-           {
-               var bid = bidFactory.CreateBid(bidType);
-               if (validator.CanBid(bid, mgr))
-                   CreateButton(bidType, trucoButtonsContainer, trucoButtons);
-           }
-           
-           if (trucoOptionsPanel != null)
-               trucoOptionsPanel.SetActive(trucoButtons.Count > 0);
-       }
+            IBidFactory bidFactory;
+            try
+            {
+                bidFactory = ServiceLocator.Get<IBidFactory>();
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"UIManager: Failed to get BidFactory - {ex.Message}");
+                return;
+            }
+            
+            bool hasEnvidoOptions = false;
+            bool hasTrucoOptions = false;
 
-       public void ShowEnvidoOptions(IEnumerable<BidType> bids)
-       {
-           if (bids == null)
-           {
-               Debug.LogWarning("UIManager: ShowEnvidoOptions called with null bids");
-               return;
-           }
+            foreach (var bidType in new[] { BidType.Envido, BidType.RealEnvido, BidType.FaltaEnvido })
+            {
+                var bid = bidFactory.CreateBid(bidType);
+                if (validator.CanBid(bid, mgr))
+                {
+                    hasEnvidoOptions = true;
+                    break;
+                }
+            }
+            
+            foreach (var bidType in new[] { BidType.Truco, BidType.ReTruco, BidType.ValeCuatro })
+            {
+                var bid = bidFactory.CreateBid(bidType);
+                if (validator.CanBid(bid, mgr))
+                {
+                    hasTrucoOptions = true;
+                    break;
+                }
+            }
 
-           ClearEnvidoButtons();
-           
-           if (envidoOptionsPanel != null)
-               envidoOptionsPanel.SetActive(true);
-           
-           foreach (var bidType in bids) 
-               CreateButton(bidType, envidoButtonsContainer, envidoButtons);
-       }
+            if (hasEnvidoOptions)
+            {
+                ShowEnvidoOptions(new[] { BidType.Envido, BidType.RealEnvido, BidType.FaltaEnvido });
+            }
 
-       public void HideEnvidoOptions()
-       {
-           if (envidoOptionsPanel != null)
-               envidoOptionsPanel.SetActive(false);
-           ClearEnvidoButtons();
-       }
+            if (hasTrucoOptions)
+            {
+                ShowTrucoOptions(new[] { BidType.Truco, BidType.ReTruco, BidType.ValeCuatro });
+            }
+        }
 
-       public void ShowTrucoOptions(IEnumerable<BidType> bids)
-       {
-           if (bids == null)
-           {
-               Debug.LogWarning("UIManager: ShowTrucoOptions called with null bids");
-               return;
-           }
+        public void ShowEnvidoOptions(IEnumerable<BidType> bids)
+        {
+            if (bids == null)
+            {
+                Debug.LogWarning("UIManager: ShowEnvidoOptions called with null bids");
+                return;
+            }
 
-           ClearTrucoButtons();
-           
-           if (trucoOptionsPanel != null)
-               trucoOptionsPanel.SetActive(true);
-           
-           foreach (var bidType in bids) 
-               CreateButton(bidType, trucoButtonsContainer, trucoButtons);
-       }
+            if (envidoBidsPanel != null)
+                envidoBidsPanel.SetActive(true);
+        }
 
-       public void HideTrucoOptions()
-       {
-           if (trucoOptionsPanel != null)
-               trucoOptionsPanel.SetActive(false);
-           ClearTrucoButtons();
-       }
+        public void HideEnvidoOptions()
+        {
+            if (envidoBidsPanel != null)
+                envidoBidsPanel.SetActive(false);
+        }
 
-       public void ClearAllListeners()
-       {
-           OnAcceptDeclineResponse = null;
-           OnBidSelected = null;
-           currentAcceptDeclineAction = null;
-           currentConfirmAction = null;
-           currentCancelAction = null;
-       }
+        public void ShowTrucoOptions(IEnumerable<BidType> bids)
+        {
+            if (bids == null)
+            {
+                Debug.LogWarning("UIManager: ShowTrucoOptions called with null bids");
+                return;
+            }
 
-       public void ShowEnvidoSelectionPanel(System.Action onConfirm, System.Action onCancel, int initialValue)
-       {
-           if (onConfirm == null || onCancel == null)
-           {
-               Debug.LogWarning("UIManager: ShowEnvidoSelectionPanel called with null actions");
-               return;
-           }
+            if (trucoBidsPanel != null)
+                trucoBidsPanel.SetActive(true);
+        }
 
-           currentConfirmAction = onConfirm;
-           currentCancelAction = onCancel;
+        public void HideTrucoOptions()
+        {
+            if (trucoBidsPanel != null)
+                trucoBidsPanel.SetActive(false);
+        }
 
-           if (envidoSelectionPanel != null)
-               envidoSelectionPanel.SetActive(true);
-           
-           SetupEnvidoSelectionButtons();
-           UpdateEnvidoSelectionValue(initialValue);
-           
-           if (envidoInstructionText != null)
-               envidoInstructionText.text = "Select up to 2 cards for your Envido\n(Preferably of the same suit)";
-       }
+        public void ShowAcceptDeclinePanel(Action<bool> onResponse)
+        {
+            if (onResponse == null)
+            {
+                Debug.LogWarning("UIManager: ShowAcceptDeclinePanel called with null action");
+                return;
+            }
 
-       private void SetupEnvidoSelectionButtons()
-       {
-           if (confirmEnvidoButton != null)
-           {
-               confirmEnvidoButton.onClick.RemoveAllListeners();
-               confirmEnvidoButton.onClick.AddListener(OnConfirmEnvidoPressed);
-           }
+            currentAcceptDeclineAction = onResponse;
+            
+            if (responsePanel != null)
+                responsePanel.SetActive(true);
+        }
 
-           if (cancelEnvidoButton != null)
-           {
-               cancelEnvidoButton.onClick.RemoveAllListeners();
-               cancelEnvidoButton.onClick.AddListener(OnCancelEnvidoPressed);
-           }
-       }
+        public void HideAcceptDeclinePanel()
+        {
+            if (responsePanel != null)
+                responsePanel.SetActive(false);
+            
+            currentAcceptDeclineAction = null;
+        }
 
-       private void OnConfirmEnvidoPressed()
-       {
-           currentConfirmAction?.Invoke();
-       }
+        public void ShowCantosPanel(Action onCantar, Action onNoCantar)
+        {
+            currentCantarAction = onCantar;
+            currentNoCantarAction = onNoCantar;
 
-       private void OnCancelEnvidoPressed()
-       {
-           currentCancelAction?.Invoke();
-       }
+            if (cantarButton != null)
+            {
+                cantarButton.onClick.RemoveAllListeners();
+                cantarButton.onClick.AddListener(() => OnCantarPressed());
+            }
 
-       public void HideEnvidoSelectionPanel()
-       {
-           if (envidoSelectionPanel != null)
-               envidoSelectionPanel.SetActive(false);
+            if (noCantarButton != null)
+            {
+                noCantarButton.onClick.RemoveAllListeners();
+                noCantarButton.onClick.AddListener(() => OnNoCantarPressed());
+            }
 
-           CleanupEnvidoSelectionButtons();
-       }
+            if (cantarInstructionText != null)
+                cantarInstructionText.text = "Select up to 2 cards for your Envido";
 
-       private void CleanupEnvidoSelectionButtons()
-       {
-           currentConfirmAction = null;
-           currentCancelAction = null;
-           
-           confirmEnvidoButton?.onClick.RemoveAllListeners();
-           cancelEnvidoButton?.onClick.RemoveAllListeners();
-       }
+            if (cantosPanel != null)
+                cantosPanel.SetActive(true);
+        }
 
-       public void UpdateEnvidoSelectionValue(int value)
-       {
-           if (envidoValueText != null)
-               envidoValueText.text = $"Envido: {value}";
-       }
+        public void HideCantosPanel()
+        {
+            if (cantosPanel != null)
+                cantosPanel.SetActive(false);
 
-       public void ShowEnvidoResolutionPanel(int playerValue, int opponentValue, string winner, int damage, List<Card> playerCards, string bidName)
-       {
-           if (envidoResolutionPanel != null)
-               envidoResolutionPanel.SetActive(true);
-           
-           if (playerValueText != null)
-               playerValueText.text = $"Your Envido: {playerValue}";
-           
-           if (opponentValueText != null)
-               opponentValueText.text = $"Devil's Envido: {opponentValue}";
-           
-           if (winnerText != null)
-               winnerText.text = $"Winner: {winner}";
-           
-           if (damageText != null)
-               damageText.text = $"{bidName}: {damage} HP damage";
-       }
+            currentCantarAction = null;
+            currentNoCantarAction = null;
+        }
 
-       public void HideEnvidoResolutionPanel()
-       {
-           if (envidoResolutionPanel != null)
-               envidoResolutionPanel.SetActive(false);
-       }
+        public void UpdateEnvidoValue(int value)
+        {
+            if (envidoValueText != null)
+                envidoValueText.text = $"Envido: {value}";
+        }
 
-       private void CreateButton(BidType type, Transform container, List<GameObject> buttonList)
-       {
-           if (bidButtonPrefab == null)
-           {
-               Debug.LogError("UIManager: bidButtonPrefab is null");
-               return;
-           }
+        public void ShowEnvidoResolutionPanel(int playerValue, int opponentValue, string winner, int damage, List<Card> playerCards, string bidName)
+        {
+            if (envidoResolutionPanel != null)
+                envidoResolutionPanel.SetActive(true);
+            
+            if (playerValueText != null)
+                playerValueText.text = $"Your Envido: {playerValue}";
+            
+            if (opponentValueText != null)
+                opponentValueText.text = $"Devil's Envido: {opponentValue}";
+        }
 
-           if (container == null)
-           {
-               Debug.LogError("UIManager: container is null");
-               return;
-           }
+        public void HideEnvidoResolutionPanel()
+        {
+            if (envidoResolutionPanel != null)
+                envidoResolutionPanel.SetActive(false);
+        }
 
-           var buttonObject = Instantiate(bidButtonPrefab, container);
-           var button = buttonObject.GetComponent<Button>();
-           var text = buttonObject.GetComponentInChildren<TextMeshProUGUI>();
-           
-           if (text != null) 
-               text.text = type.ToString();
-           
-           if (button != null) 
-           {
-               button.onClick.RemoveAllListeners();
-               button.onClick.AddListener(() => OnBidSelected?.Invoke(type));
-           }
-           
-           buttonList.Add(buttonObject);
-       }
+        public void ClearAllListeners()
+        {
+            OnAcceptDeclineResponse = null;
+            OnBidSelected = null;
+            currentAcceptDeclineAction = null;
+            currentCantarAction = null;
+            currentNoCantarAction = null;
+        }
 
-       private void ClearEnvidoButtons()
-       {
-           ClearButtonList(envidoButtons);
-       }
+        private void OnAcceptPressed()
+        {
+            currentAcceptDeclineAction?.Invoke(true);
+            OnAcceptDeclineResponse?.Invoke(true);
+            HideAcceptDeclinePanel();
+        }
 
-       private void ClearTrucoButtons()
-       {
-           ClearButtonList(trucoButtons);
-       }
+        private void OnDeclinePressed()
+        {
+            currentAcceptDeclineAction?.Invoke(false);
+            OnAcceptDeclineResponse?.Invoke(false);
+            HideAcceptDeclinePanel();
+        }
 
-       private void ClearButtonList(List<GameObject> buttonList)
-       {
-           foreach (var buttonObject in buttonList)
-           {
-               if (buttonObject != null)
-               {
-                   var button = buttonObject.GetComponent<Button>();
-                   button?.onClick.RemoveAllListeners();
-                   Destroy(buttonObject);
-               }
-           }
-           buttonList.Clear();
-       }
+        private void OnCantarPressed()
+        {
+            currentCantarAction?.Invoke();
+            HideCantosPanel();
+        }
 
-       private void CleanupAllResources()
-       {
-           Debug.Log("UIManager: Cleaning up all resources");
+        private void OnNoCantarPressed()
+        {
+            currentNoCantarAction?.Invoke();
+            HideCantosPanel();
+        }
 
-           ClearAllListeners();
-           ClearEnvidoButtons();
-           ClearTrucoButtons();
-           CleanupEnvidoSelectionButtons();
+        private void HandleEnvidoEnvido()
+        {
+            OnBidSelected?.Invoke(BidType.Envido);
+            OnBidSelected?.Invoke(BidType.Envido);
+            Debug.Log("Envido Envido sequence triggered");
+        }
 
-           acceptButton?.onClick.RemoveAllListeners();
-           declineButton?.onClick.RemoveAllListeners();
+        private void CleanupAllResources()
+        {
+            Debug.Log("UIManager: Cleaning up all resources");
 
-           ServiceLocator.Unregister<IUIManager>();
-       }
-   }
+            ClearAllListeners();
+
+            acceptButton?.onClick.RemoveAllListeners();
+            declineButton?.onClick.RemoveAllListeners();
+            cantarButton?.onClick.RemoveAllListeners();
+            noCantarButton?.onClick.RemoveAllListeners();
+
+            ServiceLocator.Unregister<IUIManager>();
+        }
+        
+        public void SortBySuit()
+        {
+            Debug.Log("🔄 Sorting by Suit requested");
+            var deckService = ServiceLocator.Get<IDeckService>();
+            deckService.SortPlayerHand(SortType.BySuit);        }
+
+        public void SortByRank()
+        {
+            Debug.Log("🔄 Sorting by Rank requested");
+            var deckService = ServiceLocator.Get<IDeckService>();
+            deckService.SortPlayerHand(SortType.ByPower);        
+        }
+        
+    }
 }

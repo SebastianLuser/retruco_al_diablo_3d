@@ -1,36 +1,28 @@
-using System;
+using GameSystems;
+using Services;
 using UnityEngine;
 
-[RequireComponent(typeof(Collider))]
-public class CardClick : MonoBehaviour
+namespace Components.Cards
 {
-    public int ownerID = 0;
-    public static bool enableClicks = false;
-    [SerializeField] private CardPlacementManager placementManager;
-    public Card card;
-
-    private void Awake()
+    [RequireComponent(typeof(Collider))]
+    public class CardClick : MonoBehaviour
     {
-        placementManager = FindAnyObjectByType<CardPlacementManager>();
-    }
+        public int ownerID = 0;
+        public static bool enableClicks = false;
+        [SerializeField] private CardPlacementManager placementManager;
+        public Card card;
 
-    void OnMouseDown()
-    {
-        Debug.Log($"👆 Clic detectado en carta: {name}");
-
-        if (!enableClicks)
+        private void Awake()
         {
-            Debug.Log("❌ Clicks deshabilitados.");
-            return;
+            placementManager = FindAnyObjectByType<CardPlacementManager>();
         }
 
-        if (ownerID != 0)
+        void OnMouseDown()
         {
-            Debug.Log("❌ Esta carta no pertenece al jugador.");
-            return;
+            if (!enableClicks) return;
+            if (ownerID != 0) return;
+            
+            TurnManager.Instance.OnPlayerCardPlayed(card, gameObject);
         }
-
-        Debug.Log("✅ Ejecutando OnPlayerCardPlayed");
-        TurnManager.Instance.OnPlayerCardPlayed(card, gameObject);
     }
 }

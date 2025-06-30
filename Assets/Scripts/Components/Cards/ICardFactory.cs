@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Cards
+namespace Components.Cards
 {
     public interface ICardFactory
     {

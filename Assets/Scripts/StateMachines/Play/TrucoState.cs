@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using Match.Bids;
+using GameSystems.Bids;
 using Services;
+using StateMachines.Main;
 using UnityEngine;
 
-namespace States
+namespace StateMachines.Play
 {
     public class TrucoState : IState
     {

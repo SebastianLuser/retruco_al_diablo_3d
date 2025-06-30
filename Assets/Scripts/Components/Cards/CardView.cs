@@ -1,45 +1,48 @@
 using UnityEngine;
 
-public class CardView : MonoBehaviour
+namespace Components.Cards
 {
-    [SerializeField] private CardTextureDictionary textureDict;
-    
-    [SerializeField] private string frontQuadName = "Quad";
-
-    public CardTextureDictionary TextureDict
+    public class CardView : MonoBehaviour
     {
-        get => textureDict;
-        set => textureDict = value;
-    }
+        [SerializeField] private CardTextureDictionary textureDict;
 
-    public int Owner { get; set; }
-    
-    public void Setup(Card card)
-    {
-        string key = card.ToString();
-        Material tex = textureDict.GetCardTexture(key);
+        [SerializeField] private string frontQuadName = "Quad";
 
-        Transform quad = transform.Find(frontQuadName);
-        if (quad == null)
+        public CardTextureDictionary TextureDict
         {
-            Debug.LogError($"[CardView] No child found '{frontQuadName}'");
-            return;
+            get => textureDict;
+            set => textureDict = value;
         }
 
-        var rend = quad.GetComponent<Renderer>();
-        if (rend == null)
+        public int Owner { get; set; }
+
+        public void Setup(Card card)
         {
-            Debug.LogError("[CardView] Frontquad no render");
-            return;
+            string key = card.ToString();
+            Material tex = textureDict.GetCardTexture(key);
+
+            Transform quad = transform.Find(frontQuadName);
+            if (quad == null)
+            {
+                Debug.LogError($"[CardView] No child found '{frontQuadName}'");
+                return;
+            }
+
+            var rend = quad.GetComponent<Renderer>();
+            if (rend == null)
+            {
+                Debug.LogError("[CardView] Frontquad no render");
+                return;
+            }
+
+            CardClick clickComponent = GetComponent<CardClick>();
+            if (clickComponent != null)
+            {
+                clickComponent.card = card;
+                clickComponent.ownerID = Owner;
+            }
+
+            rend.material = tex;
         }
-        
-        CardClick clickComponent = GetComponent<CardClick>();
-        if (clickComponent != null)
-        {
-            clickComponent.card = card;
-            clickComponent.ownerID = Owner;
-        }
-        
-        rend.material = tex;
     }
 }

@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
+using GameSystems.Bids;
 using UnityEngine;
-using Match.Bids;
 
-namespace Match.Bids
+namespace Services
 {
     public class EnvidoManager
     {

@@ -1,7 +1,8 @@
-﻿namespace Cards
-{
-    using UnityEngine;
+﻿using Services;
+using UnityEngine;
 
+namespace Components.Cards
+{
     public class CardFactory : MonoBehaviour, ICardFactory
     {
         [SerializeField] private GameObject cardPrefab;
@@ -27,5 +28,4 @@
             return go;
         }
     }
-
 }

@@ -1,6 +1,7 @@
-﻿using UnityEngine;
-using AI;
-using Match.Bids;
+﻿using Components;
+using UnityEngine;
+using GameSystems.AI;
+using GameSystems.Bids;
 
 namespace Services
 {

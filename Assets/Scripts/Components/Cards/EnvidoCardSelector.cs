@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System;
+using GameSystems;
 
 namespace Components.Cards
 {
@@ -36,6 +37,8 @@ namespace Components.Cards
                 
             if (cardRenderer != null)
                 originalColor = cardRenderer.material.color;
+            
+            originalPosition = transform.localPosition;
         }
 
         void Start()
@@ -47,12 +50,32 @@ namespace Components.Cards
                 selectionOutline.SetActive(false);
         }
 
+        void OnEnable()
+        {
+            EnvidoEvents.OnCleanupRequested += HandleCleanup;
+        }
+
+        void OnDisable()
+        {
+            EnvidoEvents.OnCleanupRequested -= HandleCleanup;
+        }
+
         void Update()
         {
             if (Vector3.Distance(transform.localPosition, targetPosition) > 0.001f)
             {
                 transform.localPosition = Vector3.Lerp(transform.localPosition, targetPosition, Time.deltaTime * animationSpeed);
             }
+        }
+        
+        private void HandleCleanup()
+        {
+            
+            SetSelectionMode(false);
+            ForceDeselect();
+            
+            transform.localPosition = originalPosition;
+            
         }
         
         public void SetSelectionMode(bool active)
@@ -63,16 +86,15 @@ namespace Components.Cards
             {
                 DeselectCard();
                 SetHovered(false);
+                
+                transform.localPosition = originalPosition;
             }
-            
-            Debug.Log($"🎯 Modo selección {(active ? "ACTIVADO" : "DESACTIVADO")} para carta {card}");
         }
 
         public void SelectCard()
         {
             if (!selectionModeActive || isSelected) 
             {
-                Debug.LogWarning($"Invalid selection attempt: mode={selectionModeActive}, selected={isSelected}");
                 return;
             }
             
@@ -81,8 +103,6 @@ namespace Components.Cards
             
             UpdateVisualFeedback();
             OnCardSelectionChanged?.Invoke(card, true);
-            
-            Debug.Log($"✅ Carta seleccionada: {card}");
         }
 
         public void DeselectCard()
@@ -94,8 +114,6 @@ namespace Components.Cards
             
             UpdateVisualFeedback();
             OnCardSelectionChanged?.Invoke(card, false);
-            
-            Debug.Log($"❌ Carta deseleccionada: {card}");
         }
 
         public void ForceDeselect()
@@ -103,6 +121,9 @@ namespace Components.Cards
             isSelected = false;
             isHovered = false;
             targetPosition = originalPosition;
+            
+            transform.localPosition = originalPosition;
+            
             UpdateVisualFeedback();
         }
         

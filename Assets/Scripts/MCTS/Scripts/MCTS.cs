@@ -1,6 +1,5 @@
-using System.Collections.Generic;
 using System.Linq;
-using Match.Bids;
+using GameSystems.Bids;
 
 public class MCTS<TState, TAction> where TState : IGameState<TAction>
 {

@@ -1,9 +1,9 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
+using Components.Cards;
 using Services;
-using Match.Bids;
 
-namespace States
+namespace StateMachines.Envido
 {
     public class EnvidoResolutionState : IState
     {

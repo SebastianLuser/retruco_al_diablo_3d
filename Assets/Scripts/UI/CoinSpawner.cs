@@ -1,12 +1,16 @@
 ﻿using UnityEngine;
 
-public class CoinSpawner : MonoBehaviour
+namespace UI
 {
-    public GameObject coin;
-    public Transform spawnCoinPoint;
 
-    void OnMouseDown()
+    public class CoinSpawner : MonoBehaviour
     {
-        Instantiate(coin, spawnCoinPoint.position, Quaternion.identity);
+        public GameObject coin;
+        public Transform spawnCoinPoint;
+
+        void OnMouseDown()
+        {
+            Instantiate(coin, spawnCoinPoint.position, Quaternion.identity);
+        }
     }
 }

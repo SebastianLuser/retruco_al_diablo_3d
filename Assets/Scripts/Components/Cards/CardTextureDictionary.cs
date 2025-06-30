@@ -1,27 +1,31 @@
 using System.Collections.Generic;
+using Services;
 using UnityEngine;
 
-public class CardTextureDictionary : MonoBehaviour
+namespace Components.Cards
 {
-    [SerializeField] private List<CardTextureMapping> cardTextureList;
-    [SerializeField] private Material defaultCardTexture;
-
-    private Dictionary<string, Material> dict;
-
-    void Awake()
+    public class CardTextureDictionary : MonoBehaviour
     {
-        ServiceLocator.Register<CardTextureDictionary>(this);
-        dict = new Dictionary<string, Material>();
-        foreach (var m in cardTextureList)
-            if (!dict.ContainsKey(m.cardName))
-                dict.Add(m.cardName, m.cardTexture);
-    }
+        [SerializeField] private List<CardTextureMapping> cardTextureList;
+        [SerializeField] private Material defaultCardTexture;
 
-    public Material GetCardTexture(string cardName)
-    {
-        if (dict.TryGetValue(cardName, out var tex))
-            return tex;
-        Debug.LogWarning($"[CardTextureDictionary] No texture for {cardName}");
-        return defaultCardTexture;
+        private Dictionary<string, Material> dict;
+
+        void Awake()
+        {
+            ServiceLocator.Register<CardTextureDictionary>(this);
+            dict = new Dictionary<string, Material>();
+            foreach (var m in cardTextureList)
+                if (!dict.ContainsKey(m.cardName))
+                    dict.Add(m.cardName, m.cardTexture);
+        }
+
+        public Material GetCardTexture(string cardName)
+        {
+            if (dict.TryGetValue(cardName, out var tex))
+                return tex;
+            Debug.LogWarning($"[CardTextureDictionary] No texture for {cardName}");
+            return defaultCardTexture;
+        }
     }
 }

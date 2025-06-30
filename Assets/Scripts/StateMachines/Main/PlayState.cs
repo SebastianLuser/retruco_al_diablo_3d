@@ -1,9 +1,9 @@
-﻿using Match.Bids;
+﻿using GameSystems.Bids;
 using Services;
-using States;
+using StateMachines.Play;
 using UnityEngine;
 
-namespace States
+namespace StateMachines.Main
 {
     public class PlayState : IState
     {
@@ -44,8 +44,8 @@ namespace States
         
                 if (isFirst)
                 {
-                    int nextPlayer = 1 - playerId; // El otro jugador
-                    mgr.activePlayer = nextPlayer; // ← ESTA LÍNEA FALTABA
+                    int nextPlayer = 1 - playerId;
+                    mgr.activePlayer = nextPlayer;
             
                     Debug.Log($"🔄 {(playerId == 0 ? "Jugador" : "IA")} jugó primero - Cambiando al segundo");
                     mgr.ChangeState(new PlayState(mgr, nextPlayer, false));

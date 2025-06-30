@@ -1,6 +1,8 @@
-﻿using UnityEngine;
+﻿using Services;
+using StateMachines.Main;
+using UnityEngine;
 
-namespace States
+namespace StateMachines.Play
 {
     public class DealHandState : IState
     {

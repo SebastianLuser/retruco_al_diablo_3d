@@ -1,6 +1,7 @@
-﻿using UnityEngine;
+﻿using Services;
+using UnityEngine;
 
-namespace States
+namespace StateMachines.Play
 {
     public class EvaluateBazaState : IState
     {

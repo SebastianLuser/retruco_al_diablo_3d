@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using Components.Cards;
-using Match.Bids;
 using Services;
+using UnityEditor.VersionControl;
 
-namespace States
+namespace StateMachines.Envido
 {
     public class EnvidoCardSelectionState : IState
     {
@@ -26,8 +26,8 @@ namespace States
 
         public void Enter()
         {
-            Debug.Log("🎯 ENVIDO: Contexto especial - Selección de cartas");
-            Debug.Log($"💰 Puntos acumulados en juego: {envidoManager.GetAccumulatedPoints()}");
+            Debug.Log("🎯 ENVIDO: Card Selection State");
+            Debug.Log($"💰 Points at stake: {envidoManager.GetAccumulatedPoints()}");
             
             CardClick.enableClicks = false;
             
@@ -41,7 +41,7 @@ namespace States
 
         public void Exit()
         {
-            Debug.Log("🚪 Saliendo de selección de cartas Envido");
+            Debug.Log("🚪 Exiting Envido Card Selection");
             
             EnvidoCardSelector.OnCardSelectionChanged -= OnCardSelectionChanged;
             DisableCardSelectors();
@@ -71,7 +71,7 @@ namespace States
                 cardSelectors.Add(selector);
             }
             
-            Debug.Log($"🎯 {cardSelectors.Count} cartas disponibles para selección");
+            Debug.Log($"🎯 {cardSelectors.Count} cards available for selection");
         }
 
         private void DisableCardSelectors()
@@ -96,23 +96,22 @@ namespace States
             try
             {
                 uiManager = ServiceLocator.Get<IUIManager>();
-                uiManager.ShowEnvidoSelectionPanel(
-                    onConfirm: OnCantarEnvido,
-                    onCancel: OnNoCantarEnvido,
-                    initialValue: 0
+                uiManager.ShowCantosPanel(
+                    onCantar: OnCantarEnvido,
+                    onNoCantar: OnNoCantarEnvido
                 );
                 
-                Debug.Log("🎯 UI Envido mostrada - Botones: Cantar/No Cantar");
+                Debug.Log("🎯 CantosPanel shown");
             }
             catch (System.Exception ex)
             {
-                Debug.LogError($"❌ Error mostrando UI de Envido: {ex.Message}");
+                Debug.LogError($"❌ Error showing UI: {ex.Message}");
             }
         }
 
         private void HideSelectionUI()
         {
-            uiManager?.HideEnvidoSelectionPanel();
+            uiManager?.HideCantosPanel();
         }
 
         #endregion
@@ -125,7 +124,7 @@ namespace States
             {
                 if (selectedCards.Count >= MAX_SELECTED_CARDS)
                 {
-                    Debug.Log($"❌ Máximo {MAX_SELECTED_CARDS} cartas permitidas");
+                    Debug.Log($"❌ Maximum {MAX_SELECTED_CARDS} cards allowed");
                     
                     var selector = cardSelectors.FirstOrDefault(s => s.Card == card);
                     selector?.DeselectCard();
@@ -133,12 +132,12 @@ namespace States
                 }
                 
                 selectedCards.Add(card);
-                Debug.Log($"✅ Carta seleccionada: {card}. Total: {selectedCards.Count}");
+                Debug.Log($"✅ Card selected: {card}. Total: {selectedCards.Count}");
             }
             else
             {
                 selectedCards.Remove(card);
-                Debug.Log($"❌ Carta deseleccionada: {card}. Total: {selectedCards.Count}");
+                Debug.Log($"❌ Card deselected: {card}. Total: {selectedCards.Count}");
             }
             
             UpdateEnvidoValue();
@@ -146,41 +145,41 @@ namespace States
 
         private void UpdateEnvidoValue()
         {
-            int envidoValue = States.EnvidoCalculator.CalculateEnvidoFromSelection(selectedCards);
-            uiManager?.UpdateEnvidoSelectionValue(envidoValue);
+            int envidoValue = EnvidoCalculator.CalculateEnvidoFromSelection(selectedCards);
+            uiManager?.UpdateEnvidoValue(envidoValue);
             
-            string description = States.EnvidoCalculator.GetEnvidoDescription(selectedCards);
+            string description = EnvidoCalculator.GetEnvidoDescription(selectedCards);
             Debug.Log($"🎯 {description}");
         }
 
         #endregion
 
-        #region UI Callbacks - CANTAR vs NO CANTAR
+        #region UI Callbacks
 
         private void OnCantarEnvido()
         {
             if (selectedCards.Count < MIN_SELECTED_CARDS)
             {
-                Debug.Log($"❌ Debes seleccionar al menos {MIN_SELECTED_CARDS} carta(s)");
+                Debug.Log($"❌ You must select at least {MIN_SELECTED_CARDS} card(s)");
                 return;
             }
 
-            int playerEnvidoValue = States.EnvidoCalculator.CalculateEnvidoFromSelection(selectedCards);
+            int playerEnvidoValue = EnvidoCalculator.CalculateEnvidoFromSelection(selectedCards);
             
-            Debug.Log($"🗣️ JUGADOR CANTA SU TANTO: {playerEnvidoValue}");
-            Debug.Log($"📋 Cartas seleccionadas: {string.Join(", ", selectedCards)}");
+            Debug.Log($"🗣️ PLAYER SINGS ENVIDO: {playerEnvidoValue}");
+            Debug.Log($"📋 Selected cards: {string.Join(", ", selectedCards)}");
             
             mgr.ChangeState(new EnvidoResolutionState(mgr, envidoManager, playerEnvidoValue, selectedCards));
         }
 
         private void OnNoCantarEnvido()
         {
-            Debug.Log("🏃 Jugador se RETIRA del Envido - Oponente gana automáticamente");
+            Debug.Log("🏃 Player RETIRES from Envido - Opponent wins automatically");
             
             int damage = envidoManager.GetAccumulatedPoints();
             mgr.GameService.OpponentWinsEnvidoPoints(damage);
             
-            Debug.Log($"💀 Jugador pierde {damage} HP por retirarse del Envido");
+            Debug.Log($"💀 Player loses {damage} HP for retiring from Envido");
             
             mgr.MarcarEnvidoComoCantado();
             mgr.TransitionToPlayState();

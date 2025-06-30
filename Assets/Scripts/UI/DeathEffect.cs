@@ -1,8 +1,10 @@
 ﻿using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.Collections;
+using GameSystems;
+using Services;
 
-namespace Services
+namespace UI
 {
     public class DeathEffect: MonoBehaviour
     {

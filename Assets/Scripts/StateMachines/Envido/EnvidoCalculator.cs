@@ -1,8 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Components.Cards;
 using UnityEngine;
 
-namespace States
+namespace StateMachines.Envido
 {
     public static class EnvidoCalculator
     {
@@ -30,23 +31,38 @@ namespace States
         private static int CalculateEnvidoFromExactCards(List<Card> exactCards)
         {
             var validCards = exactCards.Where(c => c != null && IsValidEnvidoCard(c)).ToList();
-            
+    
             if (validCards.Count == 0) return 0;
-            if (validCards.Count == 1) return GetEnvidoValue(validCards[0].rank);
-            
+    
+            if (validCards.Count == 1)
+            {
+                if (IsFigure(validCards[0].rank))
+                    return 10;
+                return GetEnvidoValue(validCards[0].rank);
+            }
+    
             if (validCards.Count == 2)
             {
                 if (validCards[0].suit == validCards[1].suit)
                 {
                     return 20 + GetEnvidoValue(validCards[0].rank) + GetEnvidoValue(validCards[1].rank);
                 }
-                else
-                {
-                    return Mathf.Max(GetEnvidoValue(validCards[0].rank), GetEnvidoValue(validCards[1].rank));
-                }
+                return Mathf.Max(GetSingleCardValue(validCards[0]), GetSingleCardValue(validCards[1]));
             }
-            
+    
             return 0;
+        }
+
+        private static bool IsFigure(Rank rank)
+        {
+            return rank == Rank.Sota || rank == Rank.Caballo || rank == Rank.Rey;
+        }
+
+        private static int GetSingleCardValue(Card card)
+        {
+            if (IsFigure(card.rank))
+                return 10;
+            return GetEnvidoValue(card.rank);
         }
 
         public static bool IsValidEnvidoSelection(List<Card> selectedCards)
@@ -153,7 +169,7 @@ namespace States
             if (card == null) return false;
             
             int rankValue = (int)card.rank;
-            return rankValue >= 1 && rankValue <= 7;
+            return rankValue >= 1 && rankValue <= 12;
         }
 
         private static int GetEnvidoValue(Rank rank)
@@ -167,7 +183,10 @@ namespace States
                 case Rank.Cinco: return 5;
                 case Rank.Seis: return 6;
                 case Rank.Siete: return 7;
-                default: return 0; 
+                case Rank.Sota: return 0;    
+                case Rank.Caballo: return 0;   
+                case Rank.Rey: return 0;  
+                default: return 0;
             }
         }
 

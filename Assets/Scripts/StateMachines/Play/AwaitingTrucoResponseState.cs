@@ -1,9 +1,10 @@
-﻿using UnityEngine;
+﻿using Components.Cards;
+using UnityEngine;
 using Services;
-using Match.Bids;
 using GameSystems;
+using GameSystems.Bids;
 
-namespace States
+namespace StateMachines.Play
 {
     public class AwaitingTrucoResponseState : IState
     {
