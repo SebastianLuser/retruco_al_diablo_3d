@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using Components.Cards;
+using GameSystems.Envido;
 using Services;
-using UnityEditor.VersionControl;
 
 namespace StateMachines.Envido
 {
@@ -96,11 +96,16 @@ namespace StateMachines.Envido
             try
             {
                 uiManager = ServiceLocator.Get<IUIManager>();
+        
+                var recommendation = EnvidoGraphSelector.GetSelectionAdvice(mgr.Player.hand);
+                Debug.Log($"🎯 RECOMMENDATION: {recommendation}");
+                uiManager.ShowEnvidoRecommendation(recommendation);
+        
                 uiManager.ShowCantosPanel(
                     onCantar: OnCantarEnvido,
                     onNoCantar: OnNoCantarEnvido
                 );
-                
+        
                 Debug.Log("🎯 CantosPanel shown");
             }
             catch (System.Exception ex)

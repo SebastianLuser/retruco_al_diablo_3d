@@ -24,6 +24,7 @@ namespace Services
         void ShowEnvidoResolutionPanel(int playerValue, int opponentValue, string winner, int damage, List<Card> playerCards, string bidName);
         void HideEnvidoResolutionPanel();
         void ClearAllListeners();
+        void ShowEnvidoRecommendation(string recommendation);
         
         event Action<bool> OnAcceptDeclineResponse;
         event Action<BidType> OnBidSelected;
@@ -338,6 +339,12 @@ namespace Services
             currentCantarAction = null;
             currentNoCantarAction = null;
         }
+        
+        public void ShowEnvidoRecommendation(string recommendation)
+        {
+            if (cantarInstructionText != null)
+                cantarInstructionText.text = recommendation;
+        }
 
         private void OnAcceptPressed()
         {
@@ -386,13 +393,13 @@ namespace Services
             ServiceLocator.Unregister<IUIManager>();
         }
         
-        public void SortBySuit()
+        private void SortBySuit()
         {
             Debug.Log("🔄 Sorting by Suit requested");
             var deckService = ServiceLocator.Get<IDeckService>();
             deckService.SortPlayerHand(SortType.BySuit);        }
 
-        public void SortByRank()
+        private void SortByRank()
         {
             Debug.Log("🔄 Sorting by Rank requested");
             var deckService = ServiceLocator.Get<IDeckService>();

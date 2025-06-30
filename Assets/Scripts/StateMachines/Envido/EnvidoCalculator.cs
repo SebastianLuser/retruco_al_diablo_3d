@@ -191,40 +191,5 @@ namespace StateMachines.Envido
         }
 
         #endregion
-
-        #region Debug Helpers
-
-        public static void LogEnvidoCalculation(List<Card> cards)
-        {
-            if (!IsValidHand(cards))
-            {
-                Debug.Log("[EnvidoCalculator] Mano inválida para logging");
-                return;
-            }
-
-            Debug.Log($"[EnvidoCalculator] Calculando envido para: {string.Join(", ", cards)}");
-            
-            var cardsBySuit = cards
-                .Where(c => c != null && IsValidEnvidoCard(c))
-                .GroupBy(c => c.suit);
-
-            foreach (var group in cardsBySuit)
-            {
-                var cardsInSuit = group.ToList();
-                if (cardsInSuit.Count >= 2)
-                {
-                    var values = cardsInSuit.Select(c => GetEnvidoValue(c.rank)).OrderByDescending(v => v).Take(2).ToList();
-                    Debug.Log($"  {group.Key}: {string.Join(", ", cardsInSuit)} = 20 + {values[0]} + {values[1]} = {20 + values[0] + values[1]}");
-                }
-                else if (cardsInSuit.Count == 1)
-                {
-                    Debug.Log($"  {group.Key}: {cardsInSuit[0]} = {GetEnvidoValue(cardsInSuit[0].rank)}");
-                }
-            }
-            
-            Debug.Log($"[EnvidoCalculator] Resultado final: {CalculateEnvido(cards)}");
-        }
-
-        #endregion
     }
 }
