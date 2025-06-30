@@ -1,23 +1,27 @@
 using System.Collections.Generic;
 using Estructuras_de_Datos.Structures.Hierarchical;
 
-public interface IMatchesHistoryManager
-{
-    void RegistryMatch(Match match);
-    List<Match> GetHistory();
-}
 
-public class MatchesHistoryManager : IMatchesHistoryManager
+namespace Services
 {
-    private AVLTree<Match> history = new AVLTree<Match>();
-    
-    public void RegistryMatch(Match match)
+    public interface IMatchesHistoryManager
     {
-        history.Insert(match);
+        void RegistryMatch(Match match);
+        List<Match> GetHistory();
     }
-    
-    public List<Match> GetHistory()
+
+    public class MatchesHistoryManager : IMatchesHistoryManager
     {
-        return history.GetSortedElementsDescending();
+        private AVLTree<Match> history = new AVLTree<Match>();
+
+        public void RegistryMatch(Match match)
+        {
+            history.Insert(match);
+        }
+
+        public List<Match> GetHistory()
+        {
+            return history.GetSortedElementsDescending();
+        }
     }
 }

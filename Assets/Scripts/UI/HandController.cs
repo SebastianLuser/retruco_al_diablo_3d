@@ -2,8 +2,6 @@ using UnityEngine;
 
 namespace UI
 {
-
-
     public class HandAestheticMover : MonoBehaviour
     {
         [Header("Referencias")] [Tooltip("Transform de la mano 3D que quieres mover.")] [SerializeField]
