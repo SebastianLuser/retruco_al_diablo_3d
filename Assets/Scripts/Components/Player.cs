@@ -22,6 +22,12 @@ namespace Components
             hand.Add(card);
         }
 
+        public Card SwapCard(Card c, int index)
+        {
+            var swapedCard = hand[index];
+            hand[index] = c;
+            return swapedCard;
+        }
         public void PlayCard(Card card)
         {
             if (hand.Contains(card))

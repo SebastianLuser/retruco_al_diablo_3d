@@ -1,6 +1,4 @@
-﻿
-using System;
-using Services;
+﻿using System;
 using UnityEngine;
 
 namespace Services

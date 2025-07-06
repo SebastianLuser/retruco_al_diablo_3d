@@ -351,9 +351,6 @@ PrefabInstance:
       addedObject: {fileID: 113714986}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 547562b082fa081449a9c4cd61f75e38, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 113714990}
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 547562b082fa081449a9c4cd61f75e38, type: 3}
-      insertIndex: -1
       addedObject: {fileID: 113714991}
   m_SourcePrefab: {fileID: 100100000, guid: 547562b082fa081449a9c4cd61f75e38, type: 3}
 --- !u!4 &113714984 stripped
@@ -403,20 +400,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.0053127278, y: 0.019834762, z: 0.019894829}
   m_Center: {x: 0.0023794547, y: 3.3814293e-17, z: 0.0000000015789903}
---- !u!114 &113714990
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 113714985}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3709a8af74061284e9d4c43f12c2439e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  action: 1
-  sceneName: Game
 --- !u!114 &113714991
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -755,9 +738,6 @@ PrefabInstance:
       addedObject: {fileID: 660943212}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 547562b082fa081449a9c4cd61f75e38, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 660943214}
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 547562b082fa081449a9c4cd61f75e38, type: 3}
-      insertIndex: -1
       addedObject: {fileID: 660943217}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 547562b082fa081449a9c4cd61f75e38, type: 3}
       insertIndex: -1
@@ -794,20 +774,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.0053127278, y: 0.019834762, z: 0.019894829}
   m_Center: {x: 0.0023794547, y: 3.3814293e-17, z: 0.0000000015789903}
---- !u!114 &660943214
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 660943211}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3709a8af74061284e9d4c43f12c2439e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  action: 0
-  sceneName: Game
 --- !u!114 &660943217
 MonoBehaviour:
   m_ObjectHideFlags: 0

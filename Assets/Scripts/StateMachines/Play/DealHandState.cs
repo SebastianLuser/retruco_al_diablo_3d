@@ -22,6 +22,8 @@ namespace StateMachines.Play
             mgr.playerIsHand = true;
             mgr.activePlayer = 0;
 
+            mgr.actualRound++;
+
             Debug.Log("🎮 Nueva ronda iniciada - Jugador es mano");
             mgr.ChangeState(new PlayState(mgr, 0, true));
         }

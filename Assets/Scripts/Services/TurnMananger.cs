@@ -31,6 +31,7 @@ namespace Services
         public int opponentBazaWins = 0;
         public int activePlayer = 0;
         public bool playerMoveDone = false;
+        public int actualRound = 0;
 
         [Header("Bid State")] public bool EnvidoCantado { get; private set; } = false;
         public bool TrucoCantado { get; set; } = false;
@@ -79,10 +80,12 @@ namespace Services
 
         #region Initialization
 
-
         private IEnumerator InitializeGameDelayed()
         {
-            yield return null;
+            while (!PassiveManager.Instance.IsPassiveSelected)
+            {
+                yield return null;
+            }
 
             InitializeServices();
             InitializeAIStrategies();
@@ -142,7 +145,7 @@ namespace Services
 
             ChangeState(new EnvidoState(this, envidoManager));
         }
-        
+
         public void TransitionToPlayState()
         {
             Debug.Log("🎮 TRANSICIÓN: EnvidoState → PlayState");
@@ -156,6 +159,7 @@ namespace Services
             Debug.Log("🧹 Event-based cleanup completed");
             ChangeState(new PlayState(this, activePlayer, true));
         }
+
         public void TransitionToGameOver()
         {
             Debug.Log("💀 TRANSICIÓN: → GameOverState");

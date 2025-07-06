@@ -143,7 +143,7 @@ namespace StateMachines.Play
             
             if (callerPlayerId == 0)
             {
-                mgr.GameService.PlayerWinsEnvidoPoints(accumulatedPoints);
+                mgr.GameService.PlayerWinsEnvidoPoints(accumulatedPoints+ (PassiveManager.Instance.IsExtraEnvidoPointsPassive? 1 : 0));
                 Debug.Log($"🏆 ENVIDO POINTS: Player wins {accumulatedPoints} points (AI declined {currentBidType})");
             }
             else
