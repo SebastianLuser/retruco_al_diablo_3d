@@ -177,6 +177,10 @@ namespace Services
                 Debug.Log("SwapCards");
                 StartCoroutine(SwapDelayed());
             }
+            else
+            {
+                ActiveManager.Instance.RerollDice();
+            }
         }
 
         private IEnumerator SwapDelayed()
@@ -187,8 +191,7 @@ namespace Services
             
             var opponentIndex = Random.Range(0, opponentHand.Count);
             var playerIndex = Random.Range(0, hand.Count);
-
-
+            
             opponent.SwapCard(player.SwapCard(opponent.hand[opponentIndex], playerIndex), opponentIndex);
 
             (opponentHand[opponentIndex], hand[playerIndex]) = (hand[playerIndex], opponentHand[opponentIndex]);
@@ -218,6 +221,8 @@ namespace Services
                     enemyGO.transform.localRotation = Quaternion.Euler(20.379f, -6.595f, 3.382f);
                     break;
             }
+            
+            ActiveManager.Instance.RerollDice();
         }
 
         public void DealHand()

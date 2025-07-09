@@ -10,12 +10,14 @@ namespace StateMachines.Play
 
         public DealHandState(TurnManager m) => mgr = m;
 
+        private bool _alreadyChange;
+
         public void Enter()
         {
             Debug.Log("🌀 ===== NUEVA RONDA =====");
-            
+
             ResetRoundState();
-            
+
             mgr.PlacementService.ResetTable();
             mgr.DeckService.DealHand();
 
@@ -25,7 +27,11 @@ namespace StateMachines.Play
             mgr.actualRound++;
 
             Debug.Log("🎮 Nueva ronda iniciada - Jugador es mano");
-            mgr.ChangeState(new PlayState(mgr, 0, true));
+            if (mgr.actualRound > 1)
+            {
+                mgr.ChangeState(new PlayState(mgr, 0, true));
+                _alreadyChange = true;
+            }
         }
 
         private void ResetRoundState()
@@ -34,19 +40,28 @@ namespace StateMachines.Play
             mgr.playerBazaWins = 0;
             mgr.opponentBazaWins = 0;
             mgr.playerMoveDone = false;
-            
+
             mgr.lastPlayedCardPlayer = null;
             mgr.lastPlayedCardOpponent = null;
-            
+
             mgr.ResetEnvidoFlags();
-            
+
             var envidoManager = mgr.GetOrCreateEnvidoManager();
             envidoManager.Reset();
-            
+
             Debug.Log("🔄 Estado de ronda reseteado completamente");
         }
 
-        public void Update() { }
-        public void Exit() { }
+        public void Update()
+        {
+            if (!_alreadyChange && mgr.isDiceSelected)
+            {
+                mgr.ChangeState(new PlayState(mgr, 0, true));
+            }
+        }
+
+        public void Exit()
+        {
+        }
     }
 }

@@ -121,18 +121,32 @@ namespace GameSystems.Dialogs
                     yield return new WaitForSeconds(typeSpeed);
                 }
 
-                if (continueIndicator != null)
-                    continueIndicator.SetActive(true);
-                yield return new WaitUntil(() => Input.GetMouseButtonUp(0));
-                yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
-                if (continueIndicator != null)
-                    continueIndicator.SetActive(false);
+                if (entry.autoPass)
+                {
+                    if (continueIndicator != null)
+                        continueIndicator.SetActive(true);
+                    yield return new WaitUntil(() => Input.GetMouseButtonUp(0));
+                    yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
+                    if (continueIndicator != null)
+                        continueIndicator.SetActive(false);
+                }
+                else
+                {
+                    yield return new WaitForSeconds(entry.duration);
+                }
 
                 yield return null;
             }
 
-            yield return new WaitUntil(() => Input.GetMouseButtonUp(0));
-            yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
+            if (entry.autoPass)
+            {
+                yield return null;
+            }
+            else
+            {
+                yield return new WaitUntil(() => Input.GetMouseButtonUp(0));
+                yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
+            }
 
             if (cg != null)
             {
@@ -151,7 +165,6 @@ namespace GameSystems.Dialogs
 
             dialogueTextUI.text = "";
             speakerNameUI.text = "";
-
         }
 
         private List<string> SplitTextIntoPages(string text, int maxChars)

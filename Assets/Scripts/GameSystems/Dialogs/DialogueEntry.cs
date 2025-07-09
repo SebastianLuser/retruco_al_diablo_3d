@@ -14,6 +14,8 @@ namespace GameSystems.Dialogs
 
         public float duration = 3f;
 
+        public bool autoPass = false;
+
         public UnityEvent onDialogueEnd;
     }
 }

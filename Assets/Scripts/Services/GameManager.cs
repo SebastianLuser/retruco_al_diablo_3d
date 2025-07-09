@@ -26,8 +26,8 @@ namespace Services
         void Start()
         {
             pointSystem = ServiceLocator.Get<IPointSystem>();
-            pointSystem.InitializePoints();
             pointSystem.OnPointsUpdated += UpdatePointUI;
+            pointSystem.InitializePoints();
         }
 
         public void PlayerWinsEnvidoPoints(int pts)
@@ -89,8 +89,8 @@ namespace Services
 
         private void UpdatePointUI(int playerPoints, int opponentPoints)
         {
-            playerPointTxt.text = playerPoints.ToString();
-            opponentPointTxt.text = opponentPoints.ToString();
+            playerPointTxt.text = $"Player: {playerPoints}";
+            opponentPointTxt.text = $"Opponent: {opponentPoints}";
         }
 
         public void AcceptTruco(IBid bid)

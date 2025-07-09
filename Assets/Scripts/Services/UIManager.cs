@@ -60,6 +60,7 @@ namespace Services
         [Header("Envido Resolution Panel")]
         [SerializeField] private GameObject envidoResolutionPanel;
         [SerializeField] private TextMeshProUGUI playerValueText;
+        [SerializeField] private TextMeshProUGUI playerResultValueText;
         [SerializeField] private TextMeshProUGUI opponentValueText;
         
         [Header("Sort Buttons")] 
@@ -326,7 +327,10 @@ namespace Services
                 playerValueText.text = $"Your Envido: {playerValue}";
             
             if (opponentValueText != null)
-                opponentValueText.text = $"Devil's Envido: {opponentValue}";
+                opponentValueText.text = $"{opponentValue}";
+            
+            if (playerResultValueText != null)
+                playerResultValueText.text = $"{playerValue}";
         }
 
         public void HideEnvidoResolutionPanel()

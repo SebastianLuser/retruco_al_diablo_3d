@@ -229,6 +229,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   textureDict: {fileID: 0}
   frontQuadName: Quad
+  _cardClick: {fileID: 5234109104042733008}
+  _hoverTooltipCard: {fileID: 9062231875342676631}
 --- !u!65 &-4013483516043711964
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -267,6 +269,7 @@ MonoBehaviour:
   card:
     suit: 0
     rank: 0
+  _cardView: {fileID: 5064396723809904595}
 --- !u!114 &9062231875342676631
 MonoBehaviour:
   m_ObjectHideFlags: 0

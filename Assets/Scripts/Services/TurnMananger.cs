@@ -24,6 +24,7 @@ namespace Services
 
         [Header("Game Settings")] public float opponentPlayDelay = 1.0f;
         public int totalBazas = 3;
+        public bool isDiceSelected = false;
 
         [Header("Game State")] public int bazaCount = 0;
         public bool playerIsHand = true;
@@ -52,6 +53,8 @@ namespace Services
 
         public Player Player => deckSvc?.Player;
         public Player Opponent => deckSvc?.Opponent;
+
+        public bool isUsingActives;
 
         #region Unity Lifecycle
 

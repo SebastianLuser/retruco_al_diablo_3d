@@ -1,3 +1,5 @@
+using System;
+using UI;
 using UnityEngine;
 
 namespace Components.Cards
@@ -15,6 +17,9 @@ namespace Components.Cards
         }
 
         public int Owner { get; set; }
+        
+        [SerializeField] private CardClick _cardClick;
+        [SerializeField] private HoverTooltipCard _hoverTooltipCard;
 
         public void Setup(Card card)
         {
