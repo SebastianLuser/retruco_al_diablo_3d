@@ -96,7 +96,7 @@ namespace GameSystems.Dialogs
                 speakerNameUI.text = entry.speaker;
             dialogueTextUI.text = "";
 
-            yield return new WaitUntil(() => !Input.GetMouseButton(0));
+            //yield return new WaitUntil(() => !Input.GetMouseButton(0));
 
             List<string> pages = SplitTextIntoPages(entry.dialogueText, maxCharactersPerPage);
 

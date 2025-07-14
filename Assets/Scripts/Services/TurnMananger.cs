@@ -272,6 +272,7 @@ namespace Services
             if (aiCard == null)
             {
                 Debug.LogWarning("❌ La IA no tiene carta para jugar");
+                TransitionToGameOver();
                 return;
             }
 

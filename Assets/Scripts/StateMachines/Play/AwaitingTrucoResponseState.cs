@@ -3,6 +3,7 @@ using UnityEngine;
 using Services;
 using GameSystems;
 using GameSystems.Bids;
+using GameSystems.Dialogs;
 
 namespace StateMachines.Play
 {
@@ -13,6 +14,7 @@ namespace StateMachines.Play
         private IResponseService responseService;
         private int callerPlayerId;
         private int responderPlayerId;
+        private bool _isAIResponse = false;
 
         public AwaitingTrucoResponseState(TurnManager mgr, IBid bid)
         {
@@ -31,10 +33,12 @@ namespace StateMachines.Play
             
             if (responderPlayerId == 1)
             {
+                _isAIResponse = true;
                 HandleAIResponse();
             }
             else
             {
+                _isAIResponse = false;
                 ShowPlayerResponseUI();
             }
         }
@@ -110,6 +114,17 @@ namespace StateMachines.Play
             mgr.GameService.AcceptTruco(trucoBid);
             mgr.bloqueadoPorCanto = false;
             
+            if (_isAIResponse)
+            {
+                DialogueManager.Instance.EnqueueDialogue(new DialogueEntry()
+                {
+                    autoPass = true,
+                    dialogueText = $"Quiero carajo!",
+                    duration = 2f,
+                    speaker = "Diablo"
+                });
+            }
+            
             mgr.TransitionToPlayState();
         }
 
@@ -119,6 +134,17 @@ namespace StateMachines.Play
             
             mgr.GameService.DeclineTruco(trucoBid, callerPlayerId);
             mgr.bloqueadoPorCanto = false;
+            
+            if (_isAIResponse)
+            {
+                DialogueManager.Instance.EnqueueDialogue(new DialogueEntry()
+                {
+                    autoPass = true,
+                    dialogueText = $"No quiero",
+                    duration = 2f,
+                    speaker = "Diablo"
+                });
+            }
             
             mgr.ChangeState(new DealHandState(mgr));
         }
@@ -136,6 +162,17 @@ namespace StateMachines.Play
             Debug.Log($"⬆️ SUBIENDO TRUCO: {trucoBid.Name} → {nextTrucoBid.Name}");
             
             mgr.activePlayer = responderPlayerId;
+
+            if (_isAIResponse)
+            {
+                DialogueManager.Instance.EnqueueDialogue(new DialogueEntry()
+                {
+                    autoPass = true,
+                    dialogueText = $"Quiero {nextTrucoBid.Name}!",
+                    duration = 2f,
+                    speaker = "Diablo"
+                });
+            }
             
             mgr.ChangeState(new AwaitingTrucoResponseState(mgr, nextTrucoBid));
         }
